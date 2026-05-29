@@ -4,7 +4,7 @@ import geopandas as gpd
 import numpy as np
 import folium
 from folium.plugins import MarkerCluster
-from streamlit_folium import st_folium
+import streamlit.components.v1 as components
 import math
 from dataclasses import dataclass, field
 from typing import List
@@ -143,15 +143,23 @@ def greedy_allocate(impact_data, shelters):
             flows.append(Flow(from_zone=label, to_shelter=fallback.name, to_shelter_id=fallback.id, people=remaining, overflow=True))
     return flows
 
-# --- 4. 網頁介面 (Streamlit) ---
+# --- 4. 網頁介面與狀態記憶 (Streamlit) ---
 st.set_page_config(page_title="地震避難模擬", layout="wide")
 st.title("🌍 地震避難人數與收容所分配模擬系統")
+
+# 給系統一個記憶體，避免按鈕點擊後地圖閃退
+if "simulated" not in st.session_state:
+    st.session_state.simulated = False
 
 # 左側設定欄
 st.sidebar.header("⚙️ 設定地震參數")
 epi_lat = st.sidebar.number_input("震央緯度", value=24.15, step=0.01)
 epi_lon = st.sidebar.number_input("震央經度", value=121.62, step=0.01)
 mag = st.sidebar.number_input("地震規模", value=6.0, step=0.1)
+
+# 當使用者按下按鈕時，更新系統記憶
+if st.sidebar.button("🚀 執行模擬"):
+    st.session_state.simulated = True
 
 # 快取資料讀取 (避免每次點擊都重新讀取 Shapefile)
 @st.cache_data
@@ -178,7 +186,8 @@ def load_data():
     
     return shelter_df, village_df, gdf
 
-if st.sidebar.button("🚀 執行模擬"):
+# 如果系統記憶體顯示已執行模擬，就開始畫圖表
+if st.session_state.simulated:
     with st.spinner("正在計算受災程度與分配避難所..."):
         shelter_df, village_df, gdf = load_data()
         
@@ -201,13 +210,16 @@ if st.sidebar.button("🚀 執行模擬"):
             assigned_shelter_df = assigned_shelter_df.dropna(subset=["lat", "lon"]).copy()
         
         # 4. 準備地圖資料
-        df_output["risk_score"] = df_output["預估PGA"] / df_output["預估PGA"].max() if df_output["預估PGA"].max() > 0 else 0
+        max_pga = df_output["預估PGA"].max()
+        df_output["risk_score"] = df_output["預估PGA"] / max_pga if max_pga > 0 else 0
         df_output["merge_name"] = (df_output["行政區"].astype(str) + df_output["里名"].astype(str)).apply(normalize_name)
         
         # 尋找 Shapefile 欄位
-        v_col = [c for c in gdf.columns if c in ["VILLNAME", "TVNAME", "村里名", "里名", "name2", "village"]][0]
-        d_col = [c for c in gdf.columns if c in ["TOWNNAME", "TOWN", "行政區", "name1", "district"]]
-        d_col = d_col[0] if d_col else None
+        v_col_candidates = [c for c in gdf.columns if c in ["VILLNAME", "TVNAME", "村里名", "里名", "name2", "village"]]
+        v_col = v_col_candidates[0] if v_col_candidates else gdf.columns[0]
+        
+        d_col_candidates = [c for c in gdf.columns if c in ["TOWNNAME", "TOWN", "行政區", "name1", "district"]]
+        d_col = d_col_candidates[0] if d_col_candidates else None
         
         gdf["shp_village_fix"] = gdf[v_col].apply(fix_mojibake)
         if d_col:
@@ -220,6 +232,7 @@ if st.sidebar.button("🚀 執行模擬"):
         map_df["risk_score"] = map_df["risk_score"].fillna(0)
         
         # 5. 繪製地圖
+        st.subheader("🗺️ 災情與避難所分配地圖")
         m = folium.Map(location=[epi_lat, epi_lon], zoom_start=11)
         
         folium.GeoJson(
@@ -242,8 +255,8 @@ if st.sidebar.button("🚀 執行模擬"):
                     icon=folium.Icon(color="red" if bool(row["overflow"]) else "blue", icon="home")
                 ).add_to(marker_cluster)
                 
-        # 顯示地圖
-        st_folium(m, width=800, height=600)
+        # 使用 Streamlit 原生 HTML 渲染地圖，穩定不閃退
+        components.html(m._repr_html_(), height=600)
         
         # 顯示表格
         st.subheader("📊 受災與分配明細")
