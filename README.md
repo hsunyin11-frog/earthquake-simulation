@@ -19,7 +19,7 @@ earthquake-simulation/
 ├── requirements.txt                   # Python dependencies
 │
 ├── main/
-│   └── app.py                             # Main Streamlit application
+│   └── app.py                         # Main Streamlit application
 │
 ├── data/
 │   ├── village.csv                    # Village population & structural data
