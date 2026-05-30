@@ -37,44 +37,6 @@ earthquake-simulation/
 
 **Note on notebooks:** The `受災人數計算.ipynb` and `refugee_allocation_v2.ipynb` are development notebooks used to prototype and test the calculation as well as the algorithm logic.
 
-## How to Run
-
-### View the Live Application
-The web application is deployed and accessible online. Visit the Streamlit Cloud link to use the simulator without any installation:
-- **[Live Demo Link]** *https://earthquake-simulation-6bqkbljwymwvwqvzsakbsv.streamlit.app/*
-
-### Run Locally (for development/testing)
-
-If you want to run the application locally:
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/hsunyin11-frog/earthquake-simulation.git
-   cd earthquake-simulation
-   ```
-
-2. **Create a virtual environment:**
-   ```bash
-   python -m venv venv
-   source venv/bin/activate  # Mac/Linux
-   venv\Scripts\activate     # Windows
-   ```
-
-3. **Install dependencies:**
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. **Run the Streamlit app:**
-   ```bash
-   streamlit run app.py
-   ```
-
-5. **Access the app:**
-   - Open your browser to `http://localhost:8501`
-   - Set earthquake parameters (latitude, longitude, magnitude)
-   - Click **執行模擬** (Run Simulation) to see results
-
 ## Technologies Used
 
 - **Python 3.x** - Core programming language
