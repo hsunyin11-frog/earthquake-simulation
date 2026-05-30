@@ -241,7 +241,7 @@ if st.session_state.simulated:
                 "fillColor": risk_color(feature["properties"].get("risk_score", 0)),
                 "color": "black",
                 "weight": 1,
-                "fillOpacity": 0.7 if feature["properties"].get("risk_score", 0) > 0 else 0.1,
+                "fillOpacity": 0.9 if feature["properties"].get("risk_score", 0) > 0 else 0.1,
             },
             tooltip=folium.GeoJsonTooltip(fields=["行政區", "里名", "預估避難人數"], aliases=["行政區", "里名", "預估避難人數"])
         ).add_to(m)
