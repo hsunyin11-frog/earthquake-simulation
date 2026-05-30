@@ -331,7 +331,7 @@ if st.session_state.simulated:
         # SCENARIO COMPARISON (Optional)
         st.subheader("🔄 快速場景比較")
         if st.checkbox("顯示多震度對比"):
-            comp_mags = st.multiselect("選擇要比較的地震規模", [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5], default = [round(mag * 2) / 2] if (round(mag * 2) / 2) in options else [])
+            comp_mags = st.multiselect("選擇要比較的地震規模", [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5])
             for comp_mag in comp_mags:
                 comp_df = run_simulation(epi_lat, epi_lon, comp_mag, village_df)
                 refugees_count = comp_df["預估避難人數"].sum()
