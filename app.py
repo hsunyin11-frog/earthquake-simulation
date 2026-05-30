@@ -330,9 +330,37 @@ if st.session_state.simulated:
         
         # SCENARIO COMPARISON (Optional)
         st.subheader("🔄 快速場景比較")
+        st.write("**說明：** 本部分展示在不同地震規模下，同一地點預估的避難難民總數。透過比較多個規模的結果，可以評估地震強度對避難需求的影響程度，幫助規劃人員進行收容所容量規劃。")
+        
         if st.checkbox("顯示多震度對比"):
-            comp_mags = st.multiselect("選擇要比較的地震規模", [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5])
-            for comp_mag in comp_mags:
-                comp_df = run_simulation(epi_lat, epi_lon, comp_mag, village_df)
-                refugees_count = comp_df["預估避難人數"].sum()
-                st.write(f"規模 {comp_mag}: {refugees_count:,} 人")
+            options = [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5]
+            
+            # Round mag to the closest 0.5 value
+            rounded_mag = round(mag * 2) / 2
+            default_mag = [rounded_mag] if rounded_mag in options else []
+            
+            comp_mags = st.multiselect(
+                "選擇要比較的地震規模", 
+                options,
+                default=default_mag
+            )
+            
+            if comp_mags:
+                # Sort selected magnitudes
+                comp_mags_sorted = sorted(comp_mags)
+                
+                # Calculate refugees for each magnitude
+                comparison_data = []
+                for comp_mag in comp_mags_sorted:
+                    comp_df = run_simulation(epi_lat, epi_lon, comp_mag, village_df)
+                    refugees_count = comp_df["預估避難人數"].sum()
+                    comparison_data.append({"地震規模": comp_mag, "預估難民數": refugees_count})
+                
+                comparison_df = pd.DataFrame(comparison_data)
+                
+                # Create line chart
+                st.line_chart(comparison_df.set_index("地震規模")["預估難民數"], use_container_width=True)
+                
+                # Display table
+                st.write("**詳細數據：**")
+                st.dataframe(comparison_df, use_container_width=True)
