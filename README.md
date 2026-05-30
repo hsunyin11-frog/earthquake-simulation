@@ -2,111 +2,132 @@
 
 ## Project Overview
 
-This project analyzes earthquake data and creates geographical visualizations. The team is divided into two main components:
-- **Data Processing & Analysis** (Greedy Algorithm) - processes CSV data and generates analysis results
-- **Geo-Visualization** (Mapping) - visualizes the analyzed data on interactive maps
+This project simulates earthquake impacts and optimizes refugee allocation to shelters. The system follows a complete workflow:
+
+1. **Collect Data** - Load village population and shelter location data from CSV files and shapefiles
+2. **Calculate Refugees** - Use earthquake physics equations (PGA, intensity, damage rates) to estimate displacement from epicenter, magnitude, and structural vulnerability
+3. **Refugee Allocation** - Apply a greedy algorithm to optimally assign displaced people to nearby shelters
+4. **Analysis & Visualization** - Combine simulation results with geographical data to create comprehensive disaster impact maps
+5. **Web Interface** - Deploy as an interactive Streamlit web application for real-time scenario simulation
 
 ## Project Structure
 
 ```
 earthquake-simulation/
-├── README.md                    # This file
-├── .gitignore                   # Git ignore rules
-├── requirements.txt             # Python dependencies
+├── README.md                          # This file
+├── .gitignore                         # Git ignore rules
+├── requirements.txt                   # Python dependencies
+│
+├── app.py                             # Main Streamlit application
 │
 ├── data/
-│   ├── input/
-│   │   ├── [CSV File 1]        # Input data file 1
-│   │   ├── [CSV File 2]        # Input data file 2
-│   │   └── input_data.json     # JSON input from preprocessing
-│   └── output/
-│       └── analysis_result.json # Output from greedy algorithm
-│
-├── src/
-│   ├── __init__.py
-│   ├── algorithm.py            # Greedy algorithm implementation
-│   ├── processor.py            # Data processing & analysis logic
-│   └── utils.py                # Helper functions
+│   ├── village.csv                    # Village population & structural data
+│   ├── shelter.csv                    # Shelter locations & capacity
+│   ├── village_boundary.shp           # Shapefile: Village boundaries (geometry)
+│   ├── village_boundary.shx           # Shapefile: Index file
+│   ├── village_boundary.dbf           # Shapefile: Attribute data
+│   ├── village_boundary.cpg           # Shapefile: Code page
+│   └── village_boundary.prj           # Shapefile: Projection info
 │
 └── notebooks/
-    └── analysis.ipynb          # Original analysis notebook
+    └── refugee_allocation_v2.ipynb    # Development & analysis notebook (reference)
 ```
 
-## Team Responsibilities
+**Note on data files:** These are reference datasets and are not split into input/output folders. Results are directly displayed on the web interface.
 
-### Part 1: Data Processing & Greedy Algorithm
-**Assigned to:** [Your Name]
-
-**Tasks:**
-- Read and parse two CSV files
-- Process JSON input data
-- Apply greedy algorithm for earthquake data analysis
-- Output results as JSON
-- Pass results to visualization team
-
-**Input:** 2 CSV files + JSON data
-**Output:** JSON analysis results
-
-### Part 2: Geo-Visualization & Mapping
-**Assigned to:** [Mapping Team Member]
-
-**Tasks:**
-- Receive JSON analysis from Part 1
-- Combine with geographical data
-- Create interactive map visualizations
-- Display earthquake patterns/analysis
-
-**Input:** JSON analysis results + Geo data
-**Output:** Interactive map/visualization
+**Note on notebooks:** The `refugee_allocation_v2.ipynb` is a development notebook used to prototype and test the algorithm logic. Upload it to the `notebooks/` folder for reference.
 
 ## How to Run
 
-### 1. Install Dependencies
-```bash
-pip install -r requirements.txt
-```
+### View the Live Application
+The web application is deployed and accessible online. Visit the Streamlit Cloud link to use the simulator without any installation:
+- **[Live Demo Link]** *(Add your Streamlit Cloud deployment URL here)*
 
-### 2. Run the Analysis
-```bash
-python src/processor.py
-```
+### Run Locally (for development/testing)
 
-This will:
-- Read data from `data/input/`
-- Apply the greedy algorithm
-- Generate output in `data/output/analysis_result.json`
+If you want to run the application locally:
 
-### 3. Pass Results to Mapping Team
-The JSON file in `data/output/` is ready for the mapping visualization step.
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/hsunyin11-frog/earthquake-simulation.git
+   cd earthquake-simulation
+   ```
+
+2. **Create a virtual environment:**
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # Mac/Linux
+   venv\Scripts\activate     # Windows
+   ```
+
+3. **Install dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+4. **Run the Streamlit app:**
+   ```bash
+   streamlit run app.py
+   ```
+
+5. **Access the app:**
+   - Open your browser to `http://localhost:8501`
+   - Set earthquake parameters (latitude, longitude, magnitude)
+   - Click **執行模擬** (Run Simulation) to see results
 
 ## Technologies Used
-- **Python 3.x** - Main programming language
-- **Pandas** - Data processing
+
+- **Python 3.x** - Core programming language
+- **Streamlit** - Web framework for interactive application
+- **Pandas** - Data processing and manipulation
+- **GeoPandas** - Geospatial data handling
+- **Folium** - Interactive map visualization
 - **NumPy** - Numerical computations
-- **JSON** - Data serialization
-- *(Add mapping libraries here: Folium, Leaflet, etc.)*
+- **Shapefile (.shp)** - Geographical boundary data format
 
-## Getting Started
+## Core Features
 
-1. Clone the repository
-2. Create a virtual environment: `python -m venv venv`
-3. Activate it: `source venv/bin/activate` (Mac/Linux) or `venv\Scripts\activate` (Windows)
-4. Install requirements: `pip install -r requirements.txt`
-5. Add your CSV files to `data/input/`
-6. Modify `src/processor.py` with your algorithm
+### 1. Earthquake Impact Simulation
+- **Haversine Distance Calculation** - Accurate distance from epicenter to villages
+- **PGA (Peak Ground Acceleration) Estimation** - Physics-based formula for ground motion prediction
+- **Intensity Classification** - Maps PGA to Taiwan Seismic Intensity Scale (0-7)
+- **Damage Rate Calculation** - Estimates % of population needing evacuation based on building age
 
-## Next Steps
+### 2. Greedy Refugee Allocation Algorithm
+- Prioritizes zones with highest refugee numbers
+- Assigns to nearest available shelters first
+- Handles overflow by distributing to shelters with lowest utilization
+- Tracks allocation status (normal/overflow)
 
-- [ ] Implement greedy algorithm in `src/algorithm.py`
-- [ ] Create data processing pipeline in `src/processor.py`
-- [ ] Test with sample data
-- [ ] Generate JSON output
-- [ ] Coordinate with mapping team for visualization
+### 3. Interactive Visualization
+- **Color-coded Risk Map** - Shows disaster severity by district
+- **Shelter Markers** - Blue (normal capacity) / Red (overflow)
+- **Distance Distribution Chart** - Analyzes evacuation distances
+- **Capacity Statistics** - Real-time shelter utilization metrics
 
-## Team Contact
-- Data Processing: [Your Name/Contact]
-- Mapping: [Team Member Name/Contact]
+### 4. Scenario Comparison
+- Compare multiple earthquake magnitudes simultaneously
+- Analyze how different parameters affect refugee numbers and shelter capacity
+
+## Data Requirements
+
+### `village.csv` Columns:
+- `name1` - District name (行政區)
+- `name2` - Village name (里名)
+- `lat`, `lon` - Geographic coordinates
+- `population` - Population in village
+- `old house ratio` - Percentage of older buildings (structural vulnerability)
+
+### `shelter.csv` Columns:
+- `id` - Shelter identifier
+- `name` - Shelter name
+- `lat`, `lon` - Geographic coordinates
+- `capacity` - Refugee capacity
+
+### Shapefiles (`village_boundary.*`):
+- Geospatial data for village boundaries
+- Used to visualize impact on map with districts colored by risk level
 
 ---
 
-*Last Updated: May 2026*
+*Final Project - Team 3 | 2026*
