@@ -128,6 +128,31 @@ If you want to run the application locally:
 - Geospatial data for village boundaries
 - Used to visualize impact on map with districts colored by risk level
 
+## How to Run
+
+### 1. View the Live Application (Quickest)
+The web application is deployed and accessible online. Visit the Streamlit Cloud link to use the simulator without any installation:
+* **[Live Demo Link]** https://earthquake-simulation-6bqkbljwymwvwqvzsakbsv.streamlit.app/
+
+### 2. Run Locally (For TA / Professor Evaluation)
+If you are evaluating this project and need to run the application locally, please follow these steps:
+
+**Step 1: Download the repository**
+Clone the repository to your local machine:
+`git clone https://github.com/hsunyin11-frog/earthquake-simulation.git`
+`cd earthquake-simulation`
+
+**Step 2: Install dependencies**
+Ensure you have Python 3.8+ installed. Install all required packages by running:
+`pip install -r requirements.txt`
+
+**Step 3: Run the application**
+Start the Streamlit server from your terminal:
+`streamlit run app.py`
+*(If the main file is inside a folder, adjust the path, e.g., `streamlit run main/app.py`)*
+
+The application will automatically open in your default web browser at `http://localhost:8501`.
+
 ---
 
 *Final Project - Team 3 | 2026*
