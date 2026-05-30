@@ -8,6 +8,7 @@ import streamlit.components.v1 as components
 import math
 from dataclasses import dataclass, field
 from typing import List
+import plotly.graph_objects as go
 
 # --- 1. 定義資料結構 ---
 @dataclass
@@ -358,8 +359,44 @@ if st.session_state.simulated:
                 
                 comparison_df = pd.DataFrame(comparison_data)
                 
-                # Create line chart
-                st.line_chart(comparison_df.set_index("地震規模")["預估難民數"], use_container_width=True)
+                # Create figure with Plotly
+                fig = go.Figure()
+                
+                # Add actual data points
+                fig.add_trace(go.Scatter(
+                    x=comparison_df["地震規模"],
+                    y=comparison_df["預估難民數"],
+                    mode="lines+markers",
+                    name="實際數據",
+                    line=dict(color="steelblue", width=3),
+                    marker=dict(size=8)
+                ))
+                
+                # Fit exponential trend line
+                if len(comparison_df) >= 2:
+                    z = np.polyfit(comparison_df["地震規模"], comparison_df["預估難民數"], 2)
+                    p = np.poly1d(z)
+                    x_smooth = np.linspace(comparison_df["地震規模"].min(), comparison_df["地震規模"].max(), 100)
+                    y_smooth = p(x_smooth)
+                    
+                    fig.add_trace(go.Scatter(
+                        x=x_smooth,
+                        y=y_smooth,
+                        mode="lines",
+                        name="趨勢線 (多項式擬合)",
+                        line=dict(color="red", width=2, dash="dash")
+                    ))
+                
+                # Update layout
+                fig.update_layout(
+                    title="地震規模 vs 預估難民數 (含趨勢線)",
+                    xaxis_title="地震規模",
+                    yaxis_title="預估難民數 (人)",
+                    hovermode="x unified",
+                    height=400
+                )
+                
+                st.plotly_chart(fig, use_container_width=True)
                 
                 # Display table
                 st.write("**詳細數據：**")
