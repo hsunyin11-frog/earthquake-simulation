@@ -267,4 +267,13 @@ if st.session_state.simulated:
         with col2:
             st.write("避難所分配結果")
             if not flows_df.empty:
-                st.dataframe(flows_df[["from_zone", "to_shelter", "people", "overflow"]])
+                # Format overflow column with emoji for clarity
+                display_flows = flows_df.copy()
+                display_flows["overflow"] = display_flows["overflow"].map(lambda x: "⚠️ 超額" if x else "✓ 正常")
+                display_flows = display_flows.rename(columns={
+                    "from_zone": "來源里別",
+                    "to_shelter": "避難所",
+                    "people": "分配人數",
+                    "overflow": "分配狀態"
+                })
+                st.dataframe(display_flows[["來源里別", "避難所", "分配人數", "分配狀態"]], use_container_width=True)
