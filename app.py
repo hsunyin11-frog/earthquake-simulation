@@ -277,3 +277,75 @@ if st.session_state.simulated:
                     "overflow": "分配狀態"
                 })
                 st.dataframe(display_flows[["來源里別", "避難所", "分配人數", "分配狀態"]], use_container_width=True)
+
+        # STATISTICS DASHBOARD
+        st.subheader("📈 避難所容量統計")
+        stats_col1, stats_col2, stats_col3, stats_col4 = st.columns(4)
+        
+        total_refugees = df_output["預估避難人數"].sum()
+        total_capacity = shelter_df["capacity"].sum()
+        total_allocated = sum(s.allocated for s in shelters)
+        utilization_rate = (total_allocated / total_capacity * 100) if total_capacity > 0 else 0
+        
+        with stats_col1:
+            st.metric("預估難民總數", f"{total_refugees:,} 人")
+        with stats_col2:
+            st.metric("收容所總容量", f"{total_capacity:,} 人")
+        with stats_col3:
+            st.metric("已分配人數", f"{total_allocated:,} 人")
+        with stats_col4:
+            st.metric("容量使用率", f"{utilization_rate:.1f}%", delta="超容" if total_allocated > total_capacity else "正常")
+        
+        # SHELTER STATUS TABLE
+        st.subheader("🏢 各收容所詳細狀態")
+        shelter_status = pd.DataFrame([
+            {
+                "避難所": s.name,
+                "容量": s.capacity,
+                "已分配": s.allocated,
+                "剩餘": s.remaining,
+                "使用率": f"{min(s.utilisation * 100, 999):.1f}%",
+                "狀態": "⚠️ 超額" if s.remaining < 0 else "✓ 正常" if s.remaining > s.capacity * 0.2 else "⚡ 即將滿載"
+            }
+            for s in shelters
+        ]).sort_values("使用率", ascending=False)
+        st.dataframe(shelter_status, use_container_width=True)
+        
+        # DISTANCE DISTRIBUTION CHART
+        st.subheader("📊 避難距離分佈")
+        if not flows_df.empty:
+            # Calculate distances for each flow
+            flows_df_with_dist = flows_df.copy()
+            for idx, row in flows_df_with_dist.iterrows():
+                zone_data = df_output[df_output["里名"] == row["from_zone"].split("-")[1]]
+                if not zone_data.empty:
+                    zone_lat, zone_lon = zone_data.iloc[0][["lat", "lon"]]
+                    shelter_row = assigned_shelter_df[assigned_shelter_df["to_shelter_id"] == row["to_shelter_id"]]
+                    if not shelter_row.empty:
+                        shelter_lat, shelter_lon = shelter_row.iloc[0][["lat", "lon"]]
+                        dist = haversine_distance(zone_lat, zone_lon, shelter_lat, shelter_lon)
+                        flows_df_with_dist.at[idx, "距離_km"] = round(dist, 2)
+            
+            st.bar_chart(flows_df_with_dist.groupby("距離_km")["people"].sum())
+        
+        # SCENARIO COMPARISON (Optional)
+        st.subheader("🔄 快速場景比較")
+        if st.checkbox("顯示多震度對比"):
+            comp_mags = st.multiselect("選擇要比較的地震規模", [5.0, 5.5, 6.0, 6.5, 7.0], default=[6.0])
+            for comp_mag in comp_mags:
+                comp_df = run_simulation(epi_lat, epi_lon, comp_mag, village_df)
+                refugees_count = comp_df["預估避難人數"].sum()
+                st.write(f"規模 {comp_mag}: {refugees_count:,} 人")
+        
+        # EXPORT FUNCTIONALITY
+        st.subheader("💾 匯出結果")
+        col_export1, col_export2, col_export3 = st.columns(3)
+        with col_export1:
+            csv = df_output.to_csv(index=False, encoding="utf-8-sig")
+            st.download_button("📥 下載里別避難數據", csv, "refugee_data.csv")
+        with col_export2:
+            csv_flows = flows_df.to_csv(index=False, encoding="utf-8-sig")
+            st.download_button("📥 下載分配方案", csv_flows, "allocation_plan.csv")
+        with col_export3:
+            csv_shelter = shelter_status.to_csv(index=False, encoding="utf-8-sig")
+            st.download_button("📥 下載收容所狀態", csv_shelter, "shelter_status.csv")
