@@ -138,9 +138,11 @@ The web application is deployed and accessible online. Visit the Streamlit Cloud
 If you are evaluating this project and need to run the application locally, please follow these steps:
 
 **Step 1: Download the repository**
-Clone the repository to your local machine:
-`git clone https://github.com/hsunyin11-frog/earthquake-simulation.git`
-`cd earthquake-simulation`
+You can download the code using either of these two methods:
+* **Option A (Git):** Clone the repository to your local machine using the terminal:
+  `git clone https://github.com/hsunyin11-frog/earthquake-simulation.git`
+  `cd earthquake-simulation`
+* **Option B (Manual ZIP):** Click the green **Code** button at the top of this GitHub page and select **Download ZIP**. Extract the folder, open your terminal, and use the `cd` command to navigate inside the extracted folder.
 
 **Step 2: Install dependencies**
 Ensure you have Python 3.8+ installed. Install all required packages by running:
