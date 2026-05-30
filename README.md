@@ -18,7 +18,8 @@ earthquake-simulation/
 ├── .gitignore                         # Git ignore rules
 ├── requirements.txt                   # Python dependencies
 │
-├── app.py                             # Main Streamlit application
+├── main/
+│   └── app.py                             # Main Streamlit application
 │
 ├── data/
 │   ├── village.csv                    # Village population & structural data
@@ -30,18 +31,17 @@ earthquake-simulation/
 │   └── village_boundary.prj           # Shapefile: Projection info
 │
 └── notebooks/
+    ├── 受災人數計算.ipynb
     └── refugee_allocation_v2.ipynb    # Development & analysis notebook (reference)
 ```
 
-**Note on data files:** These are reference datasets and are not split into input/output folders. Results are directly displayed on the web interface.
-
-**Note on notebooks:** The `refugee_allocation_v2.ipynb` is a development notebook used to prototype and test the algorithm logic. Upload it to the `notebooks/` folder for reference.
+**Note on notebooks:** The `受災人數計算.ipynb` and `refugee_allocation_v2.ipynb` are development notebooks used to prototype and test the calculation as well as the algorithm logic.
 
 ## How to Run
 
 ### View the Live Application
 The web application is deployed and accessible online. Visit the Streamlit Cloud link to use the simulator without any installation:
-- **[Live Demo Link]** *(Add your Streamlit Cloud deployment URL here)*
+- **[Live Demo Link]** *https://earthquake-simulation-6bqkbljwymwvwqvzsakbsv.streamlit.app/*
 
 ### Run Locally (for development/testing)
 
