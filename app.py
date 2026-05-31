@@ -294,18 +294,33 @@ if st.session_state.simulated:
             st.write("各里預估避難人數")
             st.dataframe(df_output[["行政區", "里名", "預估震度", "預估避難人數"]].sort_values("預估避難人數", ascending=False))
         with col2:
-            st.write("避難所分配結果")
+            st.write("避難所分配結果（統一視圖）")
             if not flows_df.empty:
-                # Format overflow column with emoji for clarity
-                display_flows = flows_df.copy()
-                display_flows["overflow"] = display_flows["overflow"].map(lambda x: "⚠️ 超額" if x else "✓ 正常")
-                display_flows = display_flows.rename(columns={
-                    "from_zone": "來源里別",
-                    "to_shelter": "避難所",
-                    "people": "分配人數",
-                    "overflow": "分配狀態"
-                })
-                st.dataframe(display_flows[["來源里別", "避難所", "分配人數", "分配狀態"]], use_container_width=True)
+                # Option 1: Unified rows combining normal + overflow
+                # Group by (from_zone, to_shelter, to_shelter_id) and separate overflow/normal
+                allocation_summary = []
+                
+                for (from_zone, to_shelter, to_shelter_id), group in flows_df.groupby(["from_zone", "to_shelter", "to_shelter_id"]):
+                    normal_people = group[~group["overflow"]]["people"].sum()
+                    overflow_people = group[group["overflow"]]["people"].sum()
+                    total_people = normal_people + overflow_people
+                    
+                    # Determine status
+                    if overflow_people > 0:
+                        status = f"✓ 正常 + ⚠️ 超額"
+                    else:
+                        status = "✓ 正常"
+                    
+                    allocation_summary.append({
+                        "來源里別": from_zone,
+                        "避難所": to_shelter,
+                        "正常分配": int(normal_people),
+                        "超額人數": int(overflow_people),
+                        "分配狀態": status
+                    })
+                
+                display_df = pd.DataFrame(allocation_summary).sort_values("超額人數", ascending=False)
+                st.dataframe(display_df, use_container_width=True)
         
         # STATISTICS DASHBOARD
         st.subheader("📈 避難所容量統計")
