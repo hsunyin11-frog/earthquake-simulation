@@ -397,19 +397,8 @@ if st.session_state.simulated:
                 
                 comparison_df = pd.DataFrame(comparison_data)
 
-                '''
                 # Create line chart using streamlit's built-in chart (line into second order trend line)
                 st.line_chart(comparison_df.set_index("地震規模")["預估難民數"], use_container_width=True)
-                '''
-                x = comparison_df["地震規模"]
-                y = comparison_df["預估難民數"]
-                coef = np.polyfit(x, y, 2)
-                trend = np.poly1d(coef)
-                comparison_df["趨勢線"] = trend(x)
-                chart_df = comparison_df.set_index("地震規模")
-                st.line_chart(
-                    chart_df[["預估難民數", "趨勢線"]]
-                )
                 
                 # Display table
                 st.write("**詳細數據：**")
