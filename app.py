@@ -87,11 +87,18 @@ def normalize_name(text):
 def fix_mojibake(text):
     try: return str(text).encode("latin1").decode("utf-8")
     except: return str(text)
-
-def risk_color(risk):
+'''
+def risk_color(risk): (#1)
     if risk >= 0.8: return "#ff0000"
     elif risk >= 0.5: return "#ff8800"
     elif risk > 0: return "#ffff00"
+    else: return "#cccccc"
+'''
+#change the criteria to render the map
+def risk_color(pga):
+    if pga >= 250: return "#ff0000"
+    elif pga >= 80: return "#ff8800"
+    elif pga >= 25: return "#ffff00"
     else: return "#cccccc"
 
 # --- 3. 核心模擬器 ---
@@ -211,7 +218,11 @@ if st.session_state.simulated:
         
         # 4. 準備地圖資料
         max_pga = df_output["預估PGA"].max()
-        df_output["risk_score"] = df_output["預估PGA"] / max_pga if max_pga > 0 else 0
+        #df_output["risk_score"] = df_output["預估PGA"] / max_pga if max_pga > 0 else 0 (#1)
+        df_output["risk_score"] = pd.to_numeric(
+            df_output["預估PGA"],
+            errors="coerce"
+        ).fillna(0)
         df_output["merge_name"] = (df_output["行政區"].astype(str) + df_output["里名"].astype(str)).apply(normalize_name)
         
         # 尋找 Shapefile 欄位
