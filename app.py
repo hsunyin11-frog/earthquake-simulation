@@ -87,19 +87,20 @@ def normalize_name(text):
 def fix_mojibake(text):
     try: return str(text).encode("latin1").decode("utf-8")
     except: return str(text)
-'''
-def risk_color(risk): (#1)
-    if risk >= 0.8: return "#ff0000"
-    elif risk >= 0.5: return "#ff8800"
-    elif risk > 0: return "#ffff00"
-    else: return "#cccccc"
-'''
-#change the criteria to render the map
-def risk_color(pga):
-    if pga >= 50: return "#ff0000"
-    elif pga >= 25: return "#ff8800"
-    elif pga >= 10: return "#ffff00"
-    else: return "#cccccc"
+
+def risk_color(allocation_ratio):
+    """
+    Based on refugee-to-shelter capacity ratio.
+    allocation_ratio = 預估避難人數 / 收容所總容量
+    """
+    if allocation_ratio >= 1.0:
+        return "#ff0000"      # 紅色: 超額 (>=1.0)
+    elif allocation_ratio >= 0.8:
+        return "#ff8800"      # 橙色: >=0.8
+    elif allocation_ratio >= 0.5:
+        return "#ffff00"      # 黃色: >=0.5
+    else:
+        return "#cccccc"      # 灰色: <0.5
 
 # --- 3. 核心模擬器 ---
 def run_simulation(epicenter_lat, epicenter_lon, magnitude, area_df):
@@ -217,12 +218,11 @@ if st.session_state.simulated:
             assigned_shelter_df = assigned_shelter_df.dropna(subset=["lat", "lon"]).copy()
         
         # 4. 準備地圖資料
-        max_pga = df_output["預估PGA"].max()
-        #df_output["risk_score"] = df_output["預估PGA"] / max_pga if max_pga > 0 else 0 (#1)
-        df_output["risk_score"] = pd.to_numeric(
-            df_output["預估PGA"],
-            errors="coerce"
-        ).fillna(0)
+        # Calculate total shelter capacity
+        total_shelter_capacity = shelter_df["capacity"].sum()
+        
+        # Calculate allocation ratio for each village
+        df_output["allocation_ratio"] = df_output["預估避難人數"] / total_shelter_capacity if total_shelter_capacity > 0 else 0
         df_output["merge_name"] = (df_output["行政區"].astype(str) + df_output["里名"].astype(str)).apply(normalize_name)
         
         # 尋找 Shapefile 欄位
@@ -239,8 +239,8 @@ if st.session_state.simulated:
         else:
             gdf["merge_name"] = gdf["shp_village_fix"].apply(normalize_name)
             
-        map_df = gdf.merge(df_output[["merge_name", "risk_score", "預估避難人數", "行政區", "里名"]], on="merge_name", how="left")
-        map_df["risk_score"] = map_df["risk_score"].fillna(0)
+        map_df = gdf.merge(df_output[["merge_name", "allocation_ratio", "預估避難人數", "行政區", "里名"]], on="merge_name", how="left")
+        map_df["allocation_ratio"] = map_df["allocation_ratio"].fillna(0)
         
         # 5. 繪製地圖
         st.subheader("🗺️ 災情與避難所分配地圖")
@@ -249,10 +249,10 @@ if st.session_state.simulated:
         folium.GeoJson(
             map_df,
             style_function=lambda feature: {
-                "fillColor": risk_color(feature["properties"].get("risk_score", 0)),
+                "fillColor": risk_color(feature["properties"].get("allocation_ratio", 0)),
                 "color": "black",
                 "weight": 1,
-                "fillOpacity": 0.7 if feature["properties"].get("risk_score", 0) > 0 else 0.1,
+                "fillOpacity": 0.7 if feature["properties"].get("allocation_ratio", 0) > 0 else 0.1,
             },
             tooltip=folium.GeoJsonTooltip(fields=["行政區", "里名", "預估避難人數"], aliases=["行政區", "里名", "預估避難人數"])
         ).add_to(m)
@@ -341,7 +341,7 @@ if st.session_state.simulated:
         
         # SCENARIO COMPARISON (Optional)
         st.subheader("🔄 快速場景比較")
-        st.write("**說明：** 本部分展示在不同地震規模下，同一地點預估的避難難民總數。透過比較多個規模的結果，可以評估地震強度對避難需求的影響程度，幫助規劃人員進行收容所容量規劃。")
+        st.write("**說明：** 本部分展示在不同地震規模下，同一地點預估的避難難民總數。透過比較多個規模的結果，可以評估地震強度對避難需求的影響。")
         
         if st.checkbox("顯示多震度對比"):
             options = [4.0, 4.5, 5.0, 5.5, 6.0, 6.5, 7.0, 7.5]
