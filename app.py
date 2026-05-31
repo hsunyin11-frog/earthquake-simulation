@@ -338,7 +338,7 @@ if st.session_state.simulated:
         with stats_col3:
             st.metric("已分配人數", f"{total_allocated:,} 人")
         with stats_col4:
-            st.metric("容量使用率", f"{utilization_rate:.1f}%", delta="超容" if total_allocated > total_capacity else "正常")
+            st.metric("容量使用率", f"{utilization_rate:.1f}%", delta="超額" if total_allocated > total_capacity else "正常")
         
         # SHELTER STATUS TABLE
         st.subheader("🏢 各收容所詳細狀態")
