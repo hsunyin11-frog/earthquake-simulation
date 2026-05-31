@@ -90,8 +90,8 @@ def fix_mojibake(text):
 
 def risk_color(allocation_ratio):
     """
-    Based on refugee-to-shelter capacity ratio.
-    allocation_ratio = 預估避難人數 / 收容所總容量
+    Based on refugee-to-shelter capacity ratio for each village.
+    allocation_ratio = 該村預估避難人數 / 該村分配到的收容所總容量
     """
     if allocation_ratio >= 1.0:
         return "#ff0000"      # 紅色: 超額 (>=1.0)
@@ -218,11 +218,29 @@ if st.session_state.simulated:
             assigned_shelter_df = assigned_shelter_df.dropna(subset=["lat", "lon"]).copy()
         
         # 4. 準備地圖資料
-        # Calculate total shelter capacity
-        total_shelter_capacity = shelter_df["capacity"].sum()
+        # Calculate per-village shelter capacity
+        village_shelter_capacity = {}
+        
+        if not flows_df.empty:
+            # For each village, sum up the capacity of shelters assigned to it
+            for _, flow_row in flows_df.iterrows():
+                village_label = flow_row["from_zone"]  # Format: "行政區-里名"
+                shelter_id = flow_row["to_shelter_id"]
+                
+                # Get shelter capacity
+                shelter_data = shelter_df[shelter_df["id"] == shelter_id]
+                if not shelter_data.empty:
+                    shelter_cap = int(shelter_data.iloc[0]["capacity"])
+                    if village_label not in village_shelter_capacity:
+                        village_shelter_capacity[village_label] = 0
+                    village_shelter_capacity[village_label] += shelter_cap
         
         # Calculate allocation ratio for each village
-        df_output["allocation_ratio"] = df_output["預估避難人數"] / total_shelter_capacity if total_shelter_capacity > 0 else 0
+        df_output["village_label"] = df_output["行政區"] + "-" + df_output["里名"]
+        df_output["village_shelter_capacity"] = df_output["village_label"].map(village_shelter_capacity).fillna(1)  # Default to 1 to avoid division by zero
+        df_output["allocation_ratio"] = df_output["預估避難人數"] / df_output["village_shelter_capacity"]
+        df_output["allocation_ratio"] = df_output["allocation_ratio"].fillna(0)
+        
         df_output["merge_name"] = (df_output["行政區"].astype(str) + df_output["里名"].astype(str)).apply(normalize_name)
         
         # 尋找 Shapefile 欄位
