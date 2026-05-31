@@ -96,9 +96,9 @@ def risk_color(risk): (#1)
 '''
 #change the criteria to render the map
 def risk_color(pga):
-    if pga >= 250: return "#ff0000"
-    elif pga >= 80: return "#ff8800"
-    elif pga >= 25: return "#ffff00"
+    if pga >= 50: return "#ff0000"
+    elif pga >= 25: return "#ff8800"
+    elif pga >= 10: return "#ffff00"
     else: return "#cccccc"
 
 # --- 3. 核心模擬器 ---
